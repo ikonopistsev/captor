@@ -5,13 +5,10 @@ file(READ "../revision.txt" FILE_REV)
 
 # менять верисю пакета тут
 project(captor VERSION ${FILE_VER} LANGUAGES CXX)
-# версию сборки тут
-# дополнительная версия пакета
-set(CUSTOM_BUILD_VERSION ${FILE_REV})
 
 include_directories("/usr/include/mysql")
-include_directories("./btdef")
-include_directories("./btpro")
+include_directories("../btdef")
+include_directories("../btpro")
 
 macro(use_cxx11)
   if (CMAKE_VERSION VERSION_LESS "3.1")
@@ -26,8 +23,8 @@ endmacro(use_cxx11)
 use_cxx11()
 
 set(sources
-    src/refbuf.cpp
-    src/netcat.cpp
+    ../src/refbuf.cpp
+    ../src/netcat.cpp
 )
 
 add_library(captor SHARED ${sources})
@@ -40,38 +37,33 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
 
 target_link_libraries(captor event)
 
-install(TARGETS captor LIBRARY DESTINATION lib64/mysql/plugin)
+install(TARGETS captor LIBRARY DESTINATION lib/mysql/plugin)
 
 #настройки cpack'a
 set(CPACK_PACKAGE_VENDOR "LLC Bridge-Technology")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "mysql plugin is converting result to json objects and then send over tcp.")
-set(CPACK_PACKAGE_CONTACT "ikonopistsev@roboforex.com")
+set(CPACK_PACKAGE_CONTACT "ikonopistsev@jsuff.com")
 set(CPACK_STRIP_FILES TRUE)
 
-# указываем версию пакета (прописывается в пакете)
-# рабоает для RPM
-set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
-
-# условие для DEB и RPM
-set(CUSTOM_SUFFIX ".el7")
-
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ikonopistsev")
 set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_FILE_NAME "DEB-DEFAULT")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ikonopistsev")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_DEBIAN_PACKAGE_SECTION main)
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_DEBIAN_PACKAGE_RELEASE ${FILE_REV})
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 
-#IF(NOT CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
-#    FIND_PROGRAM(DPKG_CMD dpkg)
-#    IF(NOT DPKG_CMD)
-#        MESSAGE(STATUS "Can not find dpkg in your path, default to i386.")
-#        SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE i386)
-#    ENDIF(NOT DPKG_CMD)
-#    EXECUTE_PROCESS(COMMAND "${DPKG_CMD}" --print-architecture
-#        OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
-#        OUTPUT_STRIP_TRAILING_WHITESPACE)
-#ENDIF(NOT CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
+IF(NOT CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
+    FIND_PROGRAM(DPKG_CMD dpkg)
+    IF(NOT DPKG_CMD)
+        MESSAGE(STATUS "Can not find dpkg in your path, default to i386.")
+        SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE i386)
+    ENDIF(NOT DPKG_CMD)
+    EXECUTE_PROCESS(COMMAND "${DPKG_CMD}" --print-architecture
+        OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+ENDIF(NOT CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
 
-#set(CPACK_SYSTEM_NAME ${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
+set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}-${CPACK_DEBIAN_PACKAGE_RELEASE}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE})
 
 include(CPack)
