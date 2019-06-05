@@ -94,7 +94,7 @@ extern "C" my_bool netcat_init(UDF_INIT* initid,
     UDF_ARGS* args, char* msg)
 {
     captor::netcat netcat;
-
+    bool continue_if_fail = false;
     try
     {
         auto args_count = args->arg_count;
@@ -106,13 +106,13 @@ extern "C" my_bool netcat_init(UDF_INIT* initid,
                (args->arg_type[3] == STRING_RESULT))))
         {
             strncpy(msg, "bad args type, use "
-                    "netcat(addr, cmd, param, json-data, route...)",
+                    "netcat(addr, cmd, param, json-data[, route])",
                     MYSQL_ERRMSG_SIZE);
             return 1;
         }
 
         // проверяем на количество роутов
-        if (args_count > 10)
+        if (args_count > 5)
         {
             strncpy(msg, "to many routes", MYSQL_ERRMSG_SIZE);
             return 1;
@@ -156,10 +156,26 @@ extern "C" my_bool netcat_init(UDF_INIT* initid,
         if (addr_type == INT_RESULT)
         {
             auto p = static_cast<int>(*reinterpret_cast<long long*>(addr_val));
+            if (p < 0)
+            {
+                continue_if_fail = true;
+                p = -p;
+            }
+
             dest.assign(btpro::ipv4::loopback(p));
         }
         else
-            dest.assign(std::string(addr_val, addr_size));
+        {
+            auto addr = addr_val;
+            auto size = addr_size;
+            if (addr[0] == '-')
+            {
+                continue_if_fail = true;
+                ++addr;
+                --size;
+            }
+            dest.assign(std::string(addr, size));
+        }
 
         // подключаемся
         netcat.connect(dest);
@@ -177,15 +193,19 @@ extern "C" my_bool netcat_init(UDF_INIT* initid,
     }
     catch (const std::exception& e)
     {
-        snprintf(msg, MYSQL_ERRMSG_SIZE, "%s", e.what());
+        if (!continue_if_fail)
+            snprintf(msg, MYSQL_ERRMSG_SIZE, "%s", e.what());
     }
     catch (...)
     {
-        strncpy(msg, "netcat_init :*(", MYSQL_ERRMSG_SIZE);
+        if (!continue_if_fail)
+            strncpy(msg, "netcat_init :*(", MYSQL_ERRMSG_SIZE);
     }
 
     netcat.close();
-    return 1;
+    initid->ptr = nullptr;
+
+    return (continue_if_fail) ? 0 : 1;
 }
 
 bool make_packet(captor::numbuf& buf, UDF_ARGS* args)
@@ -282,8 +302,26 @@ extern "C" long long netcat(UDF_INIT* initid,
     catch (...)
     {   }
 
-    *is_null = 1;
-    *error = 1;
+    // если была ошибка, проверяем надо ли ее обрабатывать
+    bool continue_if_fail = false;
+    auto addr_val = args->args[0];
+    if (args->arg_type[0] == INT_RESULT)
+    {
+       if (*reinterpret_cast<long long*>(addr_val) < 0)
+            continue_if_fail = true;
+    }
+    else
+    {
+        if (addr_val[0] == '-')
+            continue_if_fail = true;
+    }
+
+    *is_null = 0;
+
+    if (continue_if_fail)
+        *error = 0;
+    else
+        *error = 1;
 
     return 0;
 }

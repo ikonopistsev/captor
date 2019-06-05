@@ -1,14 +1,17 @@
 #pragma once
 
 #include "btpro/socket.hpp"
+
 #include <algorithm>
 
 namespace captor {
 
+// размер массива хранящего указатели на буфера отправки
 #ifndef CAPTOR_IOVECARR_LEN
 #define CAPTOR_IOVECARR_LEN 1024
 #endif // CAPTOR_IOVECARR_LEN
 
+// размера строки CAPTOR_NUMBUF_SIZE под печать чисел
 #ifndef CAPTOR_NUMBUF_SIZE
 #define CAPTOR_NUMBUF_SIZE 8192
 #endif // CAPTOR_NUMBUF_SIZE
@@ -56,7 +59,6 @@ public:
 class numbuf
     : public refbuf
 {
-    // строка размера CAPTOR_NUMBUF_SIZE под печать чисел
     btdef::util::basic_text<char, CAPTOR_NUMBUF_SIZE> text_{};
 
 public:

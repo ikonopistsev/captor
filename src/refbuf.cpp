@@ -12,6 +12,7 @@ iovec_iterator iovec_append(iovec_iterator i,
 void refbuf::append(char* data, unsigned long size) noexcept
 {
     assert(curr_ < data_.end());
+
     curr_ = iovec_append(curr_, data, size);
 }
 
