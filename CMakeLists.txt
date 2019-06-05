@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 
 # менять верисю пакета тут
-project(captor VERSION 1.6.0 LANGUAGES CXX)
+project(captor VERSION 1.6.1 LANGUAGES CXX)
 # версию сборки тут
 # дополнительная версия пакета
 set(CUSTOM_BUILD_VERSION 1)
