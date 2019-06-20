@@ -91,3 +91,21 @@ symbol=aaBBSD
 ```
 CREATE FUNCTION netcat RETURNS INTEGER SONAME 'libcaptor.so';
 ```
+
+## Протокол обмена
+>На каждый вызов тригера плагин делает новое подключение к capsrvd, после передачи данных соединение закрывается.
+Паекет данных:
+```
+время-в-млс command exchange\n
+\n
+str-line-data1\n
+route-data1\n
+\n
+str-line-data2\n
+route-data2\n
+\n
+...
+str-line-dataN\n
+route-dataN\n
+\n
+```
