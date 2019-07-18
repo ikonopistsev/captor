@@ -1,5 +1,7 @@
 #include "netcat.hpp"
 
+#include "btdef/date.hpp"
+
 #include <mysql.h>
 #include <cstdlib>
 
@@ -59,7 +61,7 @@ void netcat::send_header(const char* cmd, unsigned long cmd_size,
     static const ref::string sp(std::cref(" "));
 
     numbuf buf;
-    buf.append(utility::date::now().time());
+    buf.append(btdef::date::now().time());
     buf.append(sp);
     buf.append(cmd, cmd_size);
     buf.append(sp);
