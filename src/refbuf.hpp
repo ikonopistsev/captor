@@ -54,6 +54,13 @@ public:
     {
         append(str_val.data(), str_val.size());
     }
+
+    bool empty() const noexcept
+    {
+        return size() == 0;
+    }
+
+    bool drain(std::size_t len);
 };
 
 class numbuf

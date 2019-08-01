@@ -16,6 +16,16 @@ void refbuf::append(char* data, unsigned long size) noexcept
     curr_ = iovec_append(curr_, data, size);
 }
 
+bool refbuf::drain(std::size_t len)
+{
+    if (len)
+    {
+
+    }
+
+    return empty();
+}
+
 void numbuf::append(std::int64_t val) noexcept
 {
     // сохраняем указатель
