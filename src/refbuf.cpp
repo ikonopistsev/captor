@@ -1,5 +1,7 @@
 #include "refbuf.hpp"
 
+#include "btdef/conv/to_text.hpp"
+
 namespace captor {
 
 iovec_iterator iovec_append(iovec_iterator i,
@@ -9,21 +11,15 @@ iovec_iterator iovec_append(iovec_iterator i,
     return i;
 }
 
-void refbuf::append(char* data, unsigned long size) noexcept
+void refbuf::append(char* data, unsigned long size)
 {
-    assert(curr_ < data_.end());
-
-    curr_ = iovec_append(curr_, data, size);
-}
-
-bool refbuf::drain(std::size_t len)
-{
-    if (len)
+    if (curr_ < data_.end())
     {
-
+        // добавляем ссылку на данные
+        curr_ = iovec_append(curr_, data, size);
     }
-
-    return empty();
+    else
+        throw std::length_error("too many refs");
 }
 
 void numbuf::append(std::int64_t val) noexcept
@@ -31,7 +27,7 @@ void numbuf::append(std::int64_t val) noexcept
     // сохраняем указатель
     auto p = text_.end();
     // пишем новое число
-    text_ += utility::to_text(val);
+    text_ += btdef::conv::to_text(val);
     // добавляем число
     refbuf::append(p, static_cast<unsigned long>(
         std::distance(p, text_.end())));

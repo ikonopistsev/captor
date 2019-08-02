@@ -2,6 +2,8 @@
 
 #include "refbuf.hpp"
 
+#include "btpro/socket.hpp"
+
 namespace captor {
 
 class netcat

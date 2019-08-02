@@ -24,6 +24,7 @@ use_cxx11()
 set(sources
     ../src/refbuf.cpp
     ../src/netcat.cpp
+    ../src/journal.cpp
 )
 
 add_library(captor SHARED ${sources})

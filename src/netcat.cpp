@@ -1,11 +1,16 @@
 #include "netcat.hpp"
+#include "journal.hpp"
 
 #include "btdef/date.hpp"
+#include "btdef/util/basic_string.hpp"
 
 #include <mysql.h>
 #include <cstdlib>
 
 #include <sys/uio.h>
+
+// журнал работы
+static const captor::journal j;
 
 namespace captor {
 
@@ -70,19 +75,14 @@ void netcat::send_header(const char* cmd, unsigned long cmd_size,
     send(buf);
 }
 
-// слишком большие пакеты не отправит
-// FIXME
-// вообще тут может быть косяк
-// если за раз не отправятся все буфера
-// но dll используется по локалхосту
-// в режиме: покдлючение, отправка, отключение
-// dll особо не подходит для больших пакетов
-// TODO
-// посчитать сумарный размер, сделать досылку
-// это гемор, надо хранить общий размер данных и тд
 long long netcat::send(const refbuf& buf) const
 {
-    auto res = ::writev(socket_.fd(), buf.data(), static_cast<int>(buf.size()));
+    // отправлеям
+    // для синхронного скоета
+    // writev блокирует контекст пока все не отправит
+    auto res = ::writev(socket_.fd(),
+        buf.data(), static_cast<int>(buf.count()));
+
     if (btpro::code::fail == res)
         throw std::system_error(btpro::net::error_code(), "send");
 
@@ -300,8 +300,20 @@ extern "C" long long netcat(UDF_INIT* initid,
             return netcat.send(buf);
         }
     }
+    catch (const std::exception& e)
+    {
+        j.cerr([&]{
+            auto text = std::mkstr(std::cref("netcat: "), 320);
+            text += e.what();
+            return text;
+        });
+    }
     catch (...)
-    {   }
+    {
+        j.cerr([&]{
+            return "netcat :*(";
+        });
+    }
 
     // если была ошибка, проверяем надо ли ее обрабатывать
     bool continue_if_fail = false;
@@ -338,6 +350,18 @@ extern "C" void netcat_deinit(UDF_INIT* initid)
             netcat.close();
         }
     }
+    catch (const std::exception& e)
+    {
+        j.cerr([&]{
+            auto text = std::mkstr(std::cref("netcat_deinit: "), 320);
+            text += e.what();
+            return text;
+        });
+    }
     catch (...)
-    {   }
+    {
+        j.cerr([&]{
+            return "netcat_deinit :*(";
+        });
+    }
 }
