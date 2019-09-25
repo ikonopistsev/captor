@@ -36,3 +36,4 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
 
 add_library(captor SHARED ${sources})
 
+target_link_libraries(captor event)
