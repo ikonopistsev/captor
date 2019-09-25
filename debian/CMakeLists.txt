@@ -1,47 +1,14 @@
 cmake_minimum_required(VERSION 3.0.2)
 
-file(READ "../version.txt" FILE_VER)
-file(READ "../revision.txt" FILE_REV)
+set(RELATIVE_SOURCE_DIR "../")
 
-# менять верисю пакета тут
-project(captor VERSION ${FILE_VER} LANGUAGES CXX)
-
-include_directories("/usr/include/mysql")
-include_directories("../")
-
-macro(use_cxx11)
-  if (CMAKE_VERSION VERSION_LESS "3.1")
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-      set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-    endif ()
-  else ()
-    set (CMAKE_CXX_STANDARD 11)
-  endif ()
-endmacro(use_cxx11)
-
-use_cxx11()
-
-set(sources
-    ../src/refbuf.cpp
-    ../src/netcat.cpp
-    ../src/journal.cpp
-)
-
-add_library(captor SHARED ${sources})
-
-add_definitions("-DHAVE_DLOPEN")
-
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
-
-target_link_libraries(captor event)
+include(../CMakeLists.txt)
 
 install(TARGETS captor LIBRARY DESTINATION lib/mysql/plugin)
 
 #настройки cpack'a
 set(CPACK_PACKAGE_VENDOR "LLC Bridge-Technology")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "mysql plugin is converting result to json objects and then send over tcp.")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "mysql plugin send data over tcp")
 set(CPACK_PACKAGE_CONTACT "ikonopistsev@jsuff.com")
 set(CPACK_STRIP_FILES TRUE)
 
