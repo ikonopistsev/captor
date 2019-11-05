@@ -27,15 +27,15 @@ void journal::output(int level, const char *str) const noexcept
 
 int journal::error_level() const noexcept
 {
-    return LOG_MASK(LOG_ERR);
+    return LOG_ERR;
 }
 
 int journal::notice_level() const noexcept
 {
-    return LOG_MASK(LOG_NOTICE);
+    return LOG_NOTICE;
 }
 
 bool journal::level_allow(int level) const noexcept
 {
-    return (mask_ & level) != 0;
+    return (mask_ & LOG_MASK(level)) != 0;
 }
