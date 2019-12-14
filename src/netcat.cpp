@@ -14,7 +14,12 @@ static const captor::journal j;
 
 namespace captor {
 
-static const ref::string nl(std::cref("\n"));
+static const ref::string arop(std::cref("["));
+static const ref::string aren(std::cref("]"));
+static const ref::string pre(std::cref(",\""));
+static const ref::string post(std::cref("\""));
+static const ref::string meex(std::cref("\",\""));
+static const ref::string meexnu(std::cref("\",\"\""));
 
 netcat::netcat(char* ptr) noexcept
     : socket_(static_cast<evutil_socket_t>(
@@ -22,7 +27,7 @@ netcat::netcat(char* ptr) noexcept
 {
     assert(ptr);
 }
-
+    
 void netcat::close() noexcept
 {
     socket_.close();
@@ -59,21 +64,32 @@ void netcat::connect(const btpro::ip::addr& dest)
     attach(fd);
 }
 
-void netcat::send_header(const char* cmd, unsigned long cmd_size,
-    const char* param, unsigned long param_size)
+// null exchange
+void netcat::send_header(const char* method, unsigned long method_size)
 {
-    static const ref::string sp(std::cref(" "));
-
     numbuf buf;
+    buf.append(arop);
     buf.append(btdef::date::now().time());
-    buf.append(sp);
-    buf.append(cmd, cmd_size);
-    buf.append(sp);
-    buf.append(param, param_size);
-    buf.append(nl);
-    buf.append(nl);
+    buf.append(pre);
+    buf.append(method, method_size);
+    buf.append(meexnu);
     send(buf);
 }
+
+void netcat::send_header(const char* method, unsigned long method_size,
+    const char* exchange, unsigned long exchange_size)
+{
+    numbuf buf;
+    buf.append(arop);
+    buf.append(btdef::date::now().time());
+    buf.append(pre);
+    buf.append(method, method_size);
+    buf.append(meex);
+    buf.append(exchange, exchange_size);
+    buf.append(post);
+    send(buf);
+}
+
 
 long long netcat::send(const refbuf& buf) const
 {
@@ -107,7 +123,7 @@ extern "C" my_bool netcat_init(UDF_INIT* initid,
                (args->arg_type[3] == STRING_RESULT))))
         {
             strncpy(msg, "bad args type, use "
-                    "netcat(addr, cmd, param, json-data[, route])",
+                    "netcat(address, method, exchange, json-data[, route])",
                     MYSQL_ERRMSG_SIZE);
             return 1;
         }
@@ -119,34 +135,24 @@ extern "C" my_bool netcat_init(UDF_INIT* initid,
             return 1;
         }
 
-        if (args_count > 4)
+        if (args_count == 5)
         {
-            decltype(args_count) i = 3;
-            while (++i < args_count)
+            auto type = args->arg_type[4];
+            if (!((type == INT_RESULT) || (type == STRING_RESULT)))
             {
-                auto type = args->arg_type[i];
-                // простые роуты это числа
-                if (!((type == INT_RESULT) || (type == STRING_RESULT)))
-                {
-                    snprintf(msg, MYSQL_ERRMSG_SIZE,
-                             "route[%d] must be int or string", i - 3);
-                    return 1;
-                }
-            };
+                strncpy(msg, "route must be int or string", MYSQL_ERRMSG_SIZE);
+                return 1;
+            }
         }
 
         auto addr_val = args->args[0];
         auto addr_size = args->lengths[0];
         auto cmd_val = args->args[1];
         auto cmd_size = args->lengths[1];
-        auto param_val = args->args[2];
-        auto param_size = args->lengths[2];
-
-        if (!(addr_val && addr_size &&
-              cmd_val && cmd_size && param_val && param_size))
+        if (!(addr_val && addr_size && cmd_val && cmd_size))
         {
             strncpy(msg, "bad args, use "
-                    "netcat(addr, cmd, param, json-data, route...)",
+                    "netcat(address, method, exchange, json-data[, route])",
                     MYSQL_ERRMSG_SIZE);
             return 1;
         }
@@ -181,8 +187,13 @@ extern "C" my_bool netcat_init(UDF_INIT* initid,
         // подключаемся
         netcat.connect(dest);
 
+        auto param_val = args->args[2];
+        auto param_size = args->lengths[2];
         // отправляем хидер
-        netcat.send_header(cmd_val, cmd_size, param_val, param_size);
+        if (!(param_val && param_size))
+            netcat.send_header(cmd_val, cmd_size);
+        else
+            netcat.send_header(cmd_val, cmd_size, param_val, param_size);
 
         initid->maybe_null = 0;
         initid->const_item = 0;
@@ -214,61 +225,52 @@ bool make_packet(captor::numbuf& buf, UDF_ARGS* args)
     assert(args);
 
     auto data = args->args[3];
-    auto size = args->lengths[3];
+    auto data_size = args->lengths[3];
 
-    if (!(data && size))
+    if (!(data && data_size))
     {
+        j.cout([&]{
+            return std::mkstr(std::cref("netcat: no data?"));
+        });
         // если нет данных - выходим
         return false;
     }
 
-    // пишем данные
-    buf.append(data, size);
-    // перевод строки
-    buf.append(captor::nl);
+    static const ref::string arcop(std::cref(",["));
+    buf.append(arcop);
 
-    // пишем маршруты
-    for (unsigned int i = 4; i < args->arg_count; ++i)
+    // пишем  данные
+    buf.append(data, data_size);
+
+    auto route = args->args[4];
+    // отправляем маршрут если он есть
+    if (args->arg_count == 5 && route)
     {
-        auto val = args->args[i];
-        if (!val)
-        {
-            // выходим если маршурт null
-            return false;
-        }
 
-        auto val_size = args->lengths[i];
-
-        // проверяем на простой роут
-        if (args->arg_type[i] == INT_RESULT)
+        // если маршрут целочисленный
+        if (args->arg_type[4] == INT_RESULT)
         {
-            // добавляем ключ если он указан
-            auto k = args->attributes[i];
-            auto ks = args->attribute_lengths[i];
-            if (k && (ks > 0))
-            {
-                // разделитель маршрута
-                static const ref::string sep(std::cref("="));
-                // пишем ключ
-                buf.append(k, ks);
-                // пишем разделитель
-                buf.append(sep);
-            }
-            // добавляем число
-            buf.append(*reinterpret_cast<long long*>(val));
+            static const ref::string c(std::cref(","));
+            static const ref::string ronl(std::cref("]"));
+            buf.append(c);
+            auto route_number = *reinterpret_cast<long long*>(route);
+            buf.append(route_number);
+            buf.append(ronl);
         }
         else
         {
-            // добавляем строковый роут
-            buf.append(val, val_size);
+            static const ref::string ronl(std::cref("\"]"));
+            buf.append(captor::pre);
+            auto route_size = args->lengths[4];
+            buf.append(route, route_size);
+            buf.append(ronl);
         }
-
-        // окончание маршрута
-        buf.append(captor::nl);
     }
-
-    // завершаем все переводом строки, чтобы получился двойной перевод
-    buf.append(captor::nl);
+    else
+    {
+        static const ref::string ronl(std::cref(",\"\"]"));
+        buf.append(ronl);
+    }
 
     return true;
 }
@@ -341,12 +343,17 @@ extern "C" long long netcat(UDF_INIT* initid,
 
 extern "C" void netcat_deinit(UDF_INIT* initid)
 {
+    static const ref::string nl(std::cref("]\n"));
+
     try
     {
         auto ptr = initid->ptr;
         if (ptr)
         {
+            captor::refbuf buf;
             captor::netcat netcat(ptr);
+            buf.append(nl);
+            netcat.send(buf);
             netcat.close();
         }
     }

@@ -38,8 +38,10 @@ public:
 
     void connect(const btpro::ip::addr& dest);
 
-    void send_header(const char* cmd, unsigned long cmd_size,
-        const char* param, unsigned long param_size);
+    void send_header(const char* method, unsigned long method_size);
+
+    void send_header(const char* method, unsigned long method_size,
+        const char* exchange, unsigned long exchange_size);
 
     long long send(const refbuf& buf) const;
 };
