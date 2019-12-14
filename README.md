@@ -4,108 +4,66 @@ MySql UDF module for data capture. It transmits data from the trigger to capsrvd
 
 ## nectat
 
-Рассылка данных
+netcat(address, method, exchange, json-sting, route);
 
-* 1й параметр - порт, тогда рассылка идет localhost:port либо адрес с портом "host:port"
-> отрицательный порт отключает выдачу ошибки при неудачной рассылке
-
-* 2й параметр - название команды. 
-> В триггерах предполагается использовать:
->    create, update, remove
->    для тестов select
-
-* 3й параметр - используется в качестве exchange и ключа маршрута
-> предполагается использование имени таблицы
-
-* 4й параметр - json данные
-
-* 5й параметр - ключевые маршруты (если указаны)
-
-### Маршруты
-
-Используется для формирования rounting key
-Можно сформировать несколько видов маршрутов
-
-* простой - ".1232456" - чистый id
+* address - may be
 ```
-, `login` as '' - формируется при отсутсвии названия параметра если login является целым
+    localhost:port
+    port
 ```
-* key=value - ".login=1232456" 
-```
-, `login`  - формируется если login целое
-```
-* сложный - .login=1232456.source=3 - формируется вручную или через json
-```
-, jsobj(`login`, `source`) 
-```
+> working wihout answer from capsrvd
 
-### Пример запроса
 ```
-SELECT 
-    netcat(6033, 'select', 'order', 
-        jsobj(  `ticket`, `login`, `source`, 
-                `cmd`, `symbol`, `volume`, 
-                `open_time`, `open_price`, 
-                `close_time`, `close_price`, 
-                `swap`, `profit`, `stop_loss`, 
-                `take_profit`, `comment`, 
-                UNIX_TIMESTAMP(`update_time`) as 'update_time.u'
-        )
-        , jsobj(`login`, `source`)  # сложный маршрут
-        , `login`                   # простой маршрут с идентификатором
-        , `id` as ''                # простой маршрут без идентификатора
-        , mkkv(`symbol`)            # строковый маршрут
-    ) as 'result'
-FROM 
-    `order`
-LIMIT 3
-;
+    -port 
+    -localhost:port
 ```
-### Вывод
+> is ignoring connection error when capsrvd is epsent
+
+```
+    +port
+    +localhost:port
+```
+> working with wait of answer from capsrvd
+
+>captor is designed for using via local connections only
+>	using captor over internet may slowdown you mysql
+
+* method - usualy
+```
+    create - sql insert
+    modify - sql update
+    remove - sql delete
+```
+> and must be simple string
+> without any escape symbols
+
+* exchange - rabbitmq exchange
+> may be null
+
+* json-data - string witout escape chars
+
+> use capjs for this
+
+* route
+```
+    number or string
+```
+> may be null
+
+### example sql
+```
+select netcat(6033, "select", "user", 
+    jsobj(42 as 'id', 'peter' as 'name', 'male' as 'sex'), "user-id=42");
+```
+### output
 ```
 # nc -l -p 6033 127.0.0.1
 ```
 ```
-1536677138466 select order
-
-{"ticket":45860326,"login":2781696,"source":1,"cmd":1,"symbol":"EURUSD","volume":5000,"open_time":1510073782000,"open_price":1.15741,"close_time":1510682711000,"close_price":1.17902,"swap":-1.2,"profit":-717.29,"stop_loss":0,"take_profit":0,"comment":"[stopout]","update_time":"2018-09-05T17:56:22.000Z"}
-{"login":2781696,"source":1}
-login=2781696
-97609908220178877
-symbol=EURUSD
-
-{"ticket":45860933,"login":2890240,"source":1,"cmd":0,"symbol":"EURUSD","volume":5000,"open_time":1510075241000,"open_price":1.15884,"close_time":1510075247000,"close_price":1.15869,"swap":0,"profit":-0.75,"stop_loss":0,"take_profit":0,"comment":"","update_time":"2018-09-05T16:07:24.000Z"}
-{"login":2890240,"source":1}
-login=2890240
-97609908220395293
-symbol=EURUSD
-
-{"ticket":45865407,"login":2879488,"source":1,"cmd":6,"symbol":"aaBB","volume":1000,"open_time":1510102907000,"open_price":0,"close_time":1510102907000,"close_price":0,"swap":0,"profit":1.08,"stop_loss":0,"take_profit":0,"comment":"IB rebate (hhf) #1775","update_time":"2018-09-05T17:56:22.000Z"}
-{"login":2879488,"source":1}
-login=2879488
-97609908220322844
-symbol=aaBBSD
+[1576330299387,"select","user",[{"id":42,"name":"peter","sex":"male"},"user-id=42"]]
 ```
 
-## Установка
+## installig
 ```
 CREATE FUNCTION netcat RETURNS INTEGER SONAME 'libcaptor.so';
-```
-
-## Протокол обмена
->На каждый вызов тригера плагин делает новое подключение к capsrvd, после передачи данных соединение закрывается.
-Паекет данных:
-```
-время-в-млс command exchange\n
-\n
-str-line-data1\n
-route-data1\n
-\n
-str-line-data2\n
-route-data2\n
-\n
-...
-str-line-dataN\n
-route-dataN\n
-\n
 ```
