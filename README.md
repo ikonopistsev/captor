@@ -11,20 +11,11 @@ netcat(address, method, exchange, json-sting, route);
     localhost:port
     port
 ```
-> working wihout answer from capsrvd
-
+> for ignoring connection error when capsrvd is epsent
 ```
     -port 
     -localhost:port
 ```
-> is ignoring connection error when capsrvd is epsent
-
-```
-    +port
-    +localhost:port
-```
-> working with wait of answer from capsrvd
-
 >captor is designed for using via local connections only
 >	using captor over internet may slowdown you mysql
 
