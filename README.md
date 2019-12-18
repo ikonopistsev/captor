@@ -60,7 +60,7 @@ CREATE FUNCTION netcat RETURNS INTEGER SONAME 'libcaptor.so';
 ```
 
 ### trigger
-> it used capjs udf module
+> it use capjs udf module
 ```
 CREATE TRIGGER `user_AFTER_INSERT` AFTER INSERT ON `user` FOR EACH ROW
 BEGIN
