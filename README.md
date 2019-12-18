@@ -58,3 +58,51 @@ select netcat(6033, "select", "user",
 ```
 CREATE FUNCTION netcat RETURNS INTEGER SONAME 'libcaptor.so';
 ```
+
+### trigger
+```
+CREATE TRIGGER `user_AFTER_INSERT` AFTER INSERT ON `user` FOR EACH ROW
+BEGIN
+   SET @message_len = (
+    SELECT 
+        netcat(6093, 'create', 'user',
+        jsobj(
+        NEW.`id` as 'id',
+        NEW.`login` as 'login',
+        NEW.`name` as `name,`
+        NEW.`sex` as `sex`,
+        unix_timestamp(CONVERT_TZ(NEW.`create_at`, @@global.time_zone, @@session.time_zone)) * 1000 as 'create_at',
+        NEW.`comment` as 'comment',
+        cast(round(unix_timestamp(now(4))*1000) as unsigned) as 'event_at'
+        ), NEW.`id`));
+END
+```
+```
+CREATE TRIGGER `user_AFTER_UPDATE` AFTER UPDATE ON `user` FOR EACH ROW
+BEGIN
+    SET @message_len = (
+    SELECT
+        netcat(6093, 'modify', 'user',
+        jsobj(
+        NEW.`id` as 'id',
+        NEW.`login` as 'login',
+        NEW.`name` as `name`,
+        NEW.`sex` as `sex`,
+        unix_timestamp(CONVERT_TZ(NEW.`create_at`, @@global.time_zone, @@session.time_zone)) * 1000 as 'create_at',
+        NEW.`comment` as 'comment',
+        cast(round(unix_timestamp(now(4))*1000) as unsigned) as 'event_at'
+        ), NEW.`id`));
+END
+```
+```
+CREATE TRIGGER `user_AFTER_DELETE` AFTER DELETE ON `user` FOR EACH ROW
+BEGIN
+    SET @message_len = (
+    SELECT
+        netcat(6093, 'remove', 'user',
+        jsobj(
+            OLD.`id` as 'id',
+            cast(round(unix_timestamp(now(4))*1000) as unsigned) as 'event_at'
+        ), OLD.`id`));
+END
+```
