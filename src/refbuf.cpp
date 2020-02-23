@@ -22,7 +22,7 @@ void refbuf::append(char* data, unsigned long size)
         throw std::length_error("too many refs");
 }
 
-void numbuf::append(std::int64_t val) noexcept
+void numbuf::append(std::int64_t val)
 {
     // сохраняем указатель
     auto p = text_.end();

@@ -5,6 +5,12 @@
 #include "btdef/util/basic_string.hpp"
 
 #include <mysql.h>
+// FIX my_bool was removed in 8.0.1
+#ifndef HAVE_TYPE_MY_BOOL
+#include <stdbool.h>
+typedef bool my_bool;
+#endif
+
 #include <cstdlib>
 
 #include <sys/uio.h>
@@ -44,7 +50,7 @@ void netcat::connect(const btpro::ip::addr& dest)
     // что мы работаем только через локалхост
     // что принимающий сервер - нереально быстрый
     // dll не скормить данных больше чем она может пропихать в сокет
-    // небыол ни одного 100% полезного свойства у неблокируемого сокета
+    // небыло ни одного 100% полезного свойства у неблокируемого сокета
     // было решено сделать сокет блокируемым
     // это проще и выглядит надежнее
 
