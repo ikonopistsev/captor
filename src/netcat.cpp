@@ -247,23 +247,36 @@ bool make_packet(captor::numbuf& buf, UDF_ARGS* args)
     if (args->arg_count == 5 && route)
     {
 
+        static const ref::string c(std::cref(","));
         // если маршрут целочисленный
         if (args->arg_type[4] == INT_RESULT)
         {
-            static const ref::string c(std::cref(","));
-            static const ref::string ronl(std::cref("]"));
-            buf.append(c);
+            static const ref::string roen(std::cref("]"));
             auto route_number = *reinterpret_cast<long long*>(route);
+            buf.append(c);
             buf.append(route_number);
-            buf.append(ronl);
+            buf.append(roen);
         }
         else
         {
-            static const ref::string ronl(std::cref("\"]"));
-            buf.append(captor::pre);
             auto route_size = args->lengths[4];
-            buf.append(route, route_size);
-            buf.append(ronl);
+//            auto b = route[0];
+//            auto e = route[route_size - 1];
+//            // simple json test
+//            if (((b == '{') && (e == '}')) || ((b == '[') && (e == ']')))
+//            {
+//                static const ref::string roen(std::cref("]"));
+//                buf.append(c);
+//                buf.append(route, route_size);
+//                buf.append(roen);
+//            }
+//            else
+//            {
+                static const ref::string roen(std::cref("\"]"));
+                buf.append(captor::pre);
+                buf.append(route, route_size);
+                buf.append(roen);
+//            }
         }
     }
     else
