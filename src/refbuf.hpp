@@ -49,13 +49,13 @@ public:
 
     void append(char* data, unsigned long size);
 
-    void append(const char* data, unsigned long size) noexcept
+    void append(const char* data, unsigned long size)
     {
         append(const_cast<char*>(data), size);
     }
 
     template<class T>
-    void append(const T& str_val) noexcept
+    void append(const T& str_val)
     {
         append(str_val.data(), str_val.size());
     }
@@ -69,21 +69,21 @@ class numbuf
 public:
     numbuf() = default;
 
-    void append(std::int64_t val) noexcept;
+    void append(std::int64_t val);
 
-    void append(long long val) noexcept
+    void append(long long val)
     {
         append(static_cast<std::int64_t>(val));
     }
 
     template<class T>
-    void append(T* ptr, unsigned long size) noexcept
+    void append(T* ptr, unsigned long size)
     {
         refbuf::append(ptr, size);
     }
 
     template<class T>
-    void append(const T& str_val) noexcept
+    void append(const T& str_val)
     {
         append(str_val.data(), str_val.size());
     }
