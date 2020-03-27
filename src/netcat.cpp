@@ -42,6 +42,7 @@ void netcat::close() noexcept
 void netcat::attach(evutil_socket_t fd) noexcept
 {
     socket_.attach(fd);
+    //socket_.set(btpro::sndbuf::size(1048576));
 }
 
 // подключаемся только на локалхост
