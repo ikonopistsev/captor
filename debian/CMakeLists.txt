@@ -7,9 +7,9 @@ include(../CMakeLists.txt)
 install(TARGETS captor LIBRARY DESTINATION lib/mysql/plugin)
 
 #настройки cpack'a
-set(CPACK_PACKAGE_VENDOR "LLC Bridge-Technology")
+set(CPACK_PACKAGE_VENDOR "ikonopistsev")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "mysql plugin send data over tcp")
-set(CPACK_PACKAGE_CONTACT "ikonopistsev@jsuff.com")
+set(CPACK_PACKAGE_CONTACT "admin@dev4.fun")
 set(CPACK_STRIP_FILES TRUE)
 
 set(CPACK_GENERATOR "DEB")

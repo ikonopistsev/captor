@@ -11,9 +11,9 @@ set(CUSTOM_BUILD_VERSION ${FILE_REV})
 install(TARGETS captor LIBRARY DESTINATION lib64/mysql/plugin)
 
 #настройки cpack'a
-set(CPACK_PACKAGE_VENDOR "LLC Bridge-Technology")
+set(CPACK_PACKAGE_VENDOR "ikonopistsev")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "mysql plugin send data over tcp.")
-set(CPACK_PACKAGE_CONTACT "ikonopistsev@roboforex.com")
+set(CPACK_PACKAGE_CONTACT "admin@dev4.fun")
 set(CPACK_STRIP_FILES TRUE)
 
 # указываем версию пакета (прописывается в пакете)
