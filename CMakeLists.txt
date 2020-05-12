@@ -18,6 +18,11 @@ endmacro(use_cxx11)
 
 use_cxx11()
 
+option(HAVE_MY_BOOL "mysql has my_bool type" OFF)
+if (HAVE_MY_BOOL)
+  add_definitions(-DHAVE_TYPE_MY_BOOL)
+endif()
+
 set(sources
     ${RELATIVE_SOURCE_DIR}src/refbuf.cpp
     ${RELATIVE_SOURCE_DIR}src/netcat.cpp
@@ -36,4 +41,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
 
 add_library(captor SHARED ${sources})
 
-target_link_libraries(captor event)
+option(STATIC_STDCPP "static linking of libstdc++" ON)
+if (STATIC_STDCPP)
+    target_link_libraries(captor LINK_PRIVATE -static-libgcc -static-libstdc++ -l:libstdc++.a event)
+else()
+    target_link_libraries(captor event)
+endif()
+
