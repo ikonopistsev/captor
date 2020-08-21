@@ -262,23 +262,10 @@ bool make_packet(captor::numbuf& buf, UDF_ARGS* args)
         else
         {
             auto route_size = args->lengths[4];
-//            auto b = route[0];
-//            auto e = route[route_size - 1];
-//            // simple json test
-//            if (((b == '{') && (e == '}')) || ((b == '[') && (e == ']')))
-//            {
-//                static const ref::string roen(std::cref("]"));
-//                buf.append(c);
-//                buf.append(route, route_size);
-//                buf.append(roen);
-//            }
-//            else
-//            {
-                static const ref::string roen(std::cref("\"]"));
-                buf.append(captor::pre);
-                buf.append(route, route_size);
-                buf.append(roen);
-//            }
+            static const ref::string roen(std::cref("\"]"));
+            buf.append(captor::pre);
+            buf.append(route, route_size);
+            buf.append(roen);
         }
     }
     else

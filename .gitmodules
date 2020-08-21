@@ -4,3 +4,6 @@
 [submodule "btdef"]
 	path = btdef
 	url = https://github.com/ikonopistsev/btdef.git
+[submodule "libevent"]
+	path = libevent
+	url = https://github.com/libevent/libevent.git

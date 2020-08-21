@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.10)
 
 file(READ "${RELATIVE_SOURCE_DIR}version.txt" FILE_VER)
 file(READ "${RELATIVE_SOURCE_DIR}revision.txt" FILE_REV)
@@ -6,20 +6,14 @@ file(READ "${RELATIVE_SOURCE_DIR}revision.txt" FILE_REV)
 # менять верисю пакета тут
 project(captor VERSION ${FILE_VER} LANGUAGES CXX)
 
-macro(use_cxx11)
-  if (CMAKE_VERSION VERSION_LESS "3.1")
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-      set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-    endif ()
-  else ()
-    set (CMAKE_CXX_STANDARD 11)
-  endif ()
-endmacro(use_cxx11)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-use_cxx11()
+add_subdirectory(libevent)
 
-option(HAVE_MY_BOOL "mysql has my_bool type" OFF)
-if (HAVE_MY_BOOL)
+option(CAPTOR_HAVE_MY_BOOL "mysql has my_bool type" OFF)
+if (CAPTOR_HAVE_MY_BOOL)
   add_definitions(-DHAVE_TYPE_MY_BOOL)
 endif()
 
@@ -35,13 +29,9 @@ include_directories("./")
 
 add_definitions("-DHAVE_DLOPEN")
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -s")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
-
 add_library(captor SHARED ${sources})
 
-option(STATIC_STDCPP "static linking of libstdc++" ON)
+option(CAPTOR_STATIC_STDCPP "static linking of libstdc++" ON)
 if (STATIC_STDCPP)
     target_link_libraries(captor LINK_PRIVATE -static-libgcc -static-libstdc++ -l:libstdc++.a event)
 else()
