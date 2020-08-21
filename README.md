@@ -109,3 +109,10 @@ BEGIN
         ), OLD.`id`));
 END
 ```
+
+## build
+
+clone repository with '--recurse-submodules' git flag
+and try ./build.sh
+if build failed with something like mysql my_bool error, change -DCAPTOR_HAVE_MY_BOOL=OFF to ON in build.sh
+and try again
