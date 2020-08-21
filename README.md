@@ -1,3 +1,5 @@
+[![linux](https://github.com/ikonopistsev/captor/workflows/linux/badge.svg)](https://github.com/ikonopistsev/captor/actions?query=workflow%3Alinux)
+
 # captor
 
 MySql UDF module for data capture. It transmits data from the trigger to capsrvd.
