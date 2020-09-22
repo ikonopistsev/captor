@@ -10,7 +10,12 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-add_subdirectory(libevent)
+option(CAPTOR_STATIC_LIBEVENT "add static libevent" OFF)
+if (CAPTOR_STATIC_LIBEVENT)
+    set(EVENT__LIBRARY_TYPE "STATIC")
+    add_subdirectory(libevent)
+    include_directories(libevent/include ${CMAKE_CURRENT_BINARY_DIR}/libevent/include)
+endif()
 
 option(CAPTOR_HAVE_MY_BOOL "mysql has my_bool type" OFF)
 if (CAPTOR_HAVE_MY_BOOL)

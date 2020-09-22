@@ -8,7 +8,7 @@ using namespace captor;
 journal::journal() noexcept
     : mask_(LOG_UPTO(LOG_NOTICE))
 {
-    openlog("captor", LOG_ODELAY, LOG_USER);
+    openlog(nullptr, LOG_ODELAY, LOG_USER);
     // нет смысла делать setlogmask
     // тк проверку уровня лога делаем мы сами
 }
@@ -22,7 +22,7 @@ void journal::output(int level, const char *str) const noexcept
 {
     assert(str);
     // %s из-за ворнинга
-    syslog(level, "%s", str);
+    syslog(level, "captor %s", str);
 }
 
 int journal::error_level() const noexcept
